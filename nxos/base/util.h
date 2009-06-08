@@ -123,6 +123,51 @@ bool atou32(const char *s, U32* result);
  */
 bool atos32(const char *s, S32* result);
 
+/** Word cursor pointer
+ *
+ * It must be used as transparent type as first parameter for
+ * nx_extract_auto and nx_extract_type functions.
+ */
+typedef U8 * cursor_t;
+
+#define nx_extract_init(buffer) (cursor_t)buffer
+
+/** Extracts a value even if not aligned. 
+ *
+ * The size parameter refers to the byte length of the data to be extracted.
+ *
+ * @note The procedure doesn't cover error checking. Don not use size values
+ * different from 1, 2 or 4.
+ *
+ * @param addr The address of the word
+ * @param size Size in bytes of the word (1, 2 or 4)
+ */
+U32 nx_extract(U8 *addr, U8 size);
+
+/** Quick extraction macro
+ *
+ * Uses the extract primitive and increments the pointer.
+ *
+ * @note The procedure doesn't cover error checking. Don not use size values
+ * different from 1, 2 or 4.
+ *
+ * @param addr The address of the word
+ * @param size Size in bytes of the word (1, 2 or 4)
+ */
+#define nx_extract_auto(addr, size) nx_extract(((addr) += size) - size, size)
+
+/** Quick, type based, extraction macro
+ *
+ * Uses the extract primitive and increments the pointer.
+ *
+ * @note The procedure doesn't cover error checking. Don not use size values
+ * different from 1, 2 or 4.
+ *
+ * @param addr The address of the word
+ * @param type The type to extract (U8, U16, U32)
+ */
+#define nx_extract_type(addr, type) nx_extract_auto(addr, sizeof(type))
+
 /*@}*/
 
 #endif /* __NXOS_BASE_UTIL_H__ */
