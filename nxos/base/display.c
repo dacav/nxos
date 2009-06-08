@@ -66,7 +66,7 @@ void nx_display_auto_refresh(bool auto_refresh) {
 /* Explicitely refresh the display. You only need to use this when
  * auto-refresh is disabled.
  */
-inline void nx_display_refresh(void) {
+void nx_display_refresh(void) {
   nx__lcd_dirty_display();
 }
 
@@ -117,7 +117,7 @@ void nx_display_cursor_set_pos(U8 x, U8 y) {
   display.cursor.y = y;
 }
 
-inline void nx_display_end_line(void) {
+void nx_display_end_line(void) {
   update_cursor(TRUE);
 }
 
