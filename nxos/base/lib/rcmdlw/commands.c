@@ -68,13 +68,13 @@ typedef enum {
 
 static bool wheel_rotate(U8 cmd, U8 *buffer) {
   void (*call) (U8, S8, U32, bool);
-  U8 speed;
+  S8 speed;
   U32 angle;
-  U8 *s;
 
-  s = buffer;
-  speed = nx_extract_type(s, U8);
-  angle = nx_extract_type(s, U32);
+  speed = nx_extract_type(buffer, S8);
+  if (speed > 100 || speed < -100)
+    return FALSE;
+  angle = nx_extract_type(buffer, U32);
 
   if (MSK_WHR_ANGLE(cmd))
     call = nx_motors_rotate_angle;
@@ -106,20 +106,19 @@ static bool wheel_stop(U8 cmd, U8 *buffer) {
 static bool robot_move(U8 cmd, U8 *buffer) {
   S8 data_8;
   U32 data_32;
-  U8 * s;
 
-  s =  buffer;
+  data_8 = nx_extract_type(buffer, S8);
+  if (data_8 > 100 || data_8 < -100)
+    return FALSE;
   if (MSK_MOV_TURN(cmd)) {
     /* Turn the robot */
-    data_8 = nx_extract_type(s, S8);
-    data_32 = nx_extract_type(s, U32);
+    data_32 = nx_extract_type(buffer, U32);
     nx_motors_rotate_angle(0, data_8, data_32, MSK_BRAKE(cmd));
     nx_motors_rotate_angle(2, -data_8, data_32, MSK_BRAKE(cmd));
   } else {
     /* Forward until new command */
-    data_32 = nx_extract_type(s, U32);
-    nx_motors_rotate(0, data_32);
-    nx_motors_rotate(2, data_32);
+    nx_motors_rotate(0, data_8);
+    nx_motors_rotate(2, data_8);
   }
 
   return TRUE;
