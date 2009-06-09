@@ -2,6 +2,7 @@
 #include "base/drivers/radar.h"
 #include "base/types.h"
 #include "base/core.h"
+#include "base/display.h"
 
 #include "commands.h"
 #include "base/util.h"
@@ -63,8 +64,30 @@ typedef enum {
   ROTATE              = (2<<5),       /* Generic wheel rotation */
   STOP                = (3<<5),       /* Generic wheel stop */
   MOVE                = (4<<5),       /* Robot movement */
-  GET                 = (5<<5),       /* Data retriving */
+  PRINT               = (5<<5),       /* Print temperature */
+  GET                 = (6<<5),       /* Data retriving */
 } action_t;
+
+static bool print(U8 cmd, U8 *buffer) {
+  U16 id;
+  S16 temperature;
+
+  cmd = cmd;
+  id = nx_extract_type(buffer, U16);
+  temperature = nx_extract_type(buffer, S16);
+
+  nx_display_string("M=");
+  nx_display_uint(id);
+  nx_display_string(" T=");
+  if (temperature < 0) {
+    nx_display_string("-");
+    temperature *= -1;
+  }
+  nx_display_uint(temperature);
+  nx_display_end_line();
+
+  return TRUE;
+}
 
 static bool wheel_rotate(U8 cmd, U8 *buffer) {
   void (*call) (U8, S8, U32, bool);
@@ -184,6 +207,9 @@ bool nx_cmd_interpret(U8 *buffer, size_t len, bool *req_ack) {
     break;
   case MOVE:
     call = robot_move;
+    break;
+  case PRINT:
+    call = print;
     break;
   case GET:
     *req_ack = TRUE;
