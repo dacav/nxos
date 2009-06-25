@@ -1,0 +1,53 @@
+.PHONY : all clean
+
+TOOLCHAIN_PREFIX := arm-elf-
+CC := $(TOOLCHAIN_PREFIX)gcc
+LD := $(TOOLCHAIN_PREFIX)ld
+AS := $(TOOLCHAIN_PREFIX)as
+OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
+
+# compilation flags
+LIBGCC := $(shell $(CC) -print-libgcc-file-name -mthumb-interwork)
+CFLAGS := -mcpu=arm7tdmi -Os -Wextra -Wall -Werror -Wno-div-by-zero \
+          -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast \
+          -Wmissing-prototypes -ffreestanding -fsigned-char \
+          -ffunction-sections -std=gnu99 -fdata-sections \
+          -fomit-frame-pointer -msoft-float -mthumb-interwork -mthumb \
+          -Wall -Werror -Os -Wa,-mcpu=arm7tdmi,-mfpu=softfpa,-mthumb-interwork
+
+ifdef LINKERSCRIPT
+    LDFLAGS := -T$(LINKERSCRIPT)
+else
+    LDFLAGS := -T./boatlooder/boatlooder.ld
+endif
+LDFLAGS += --no-check-sections
+
+ASFLAGS := -mcpu=arm7tdmi -mthumb-interwork
+
+ifndef APPKERNEL
+  APPKERNEL := tests
+endif
+SYSTEM := ./systems/$(APPKERNEL)
+
+SOURCES := $(shell find $(SYSTEM) base -regex '.*\.\(c\|S\|s\)')
+OBJECTS := $(addsuffix .o, $(basename $(SOURCES)))
+DEPS := $(OBJECTS:.o=.d)
+
+# library path flags
+PATHS := -I. -I$(SYSTEM) -I./system/
+CFLAGS += $(PATHS)
+
+all: $(OBJECTS)
+	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBGCC) -o $(SYSTEM)/$(APPKERNEL)_boatlood
+
+clean: cleandeps
+	@echo "Removing object files..."
+	@rm -f $(OBJECTS)
+
+cleandeps:
+	@echo "Removing dependency files..."
+	@find . -name '*.d' | xargs rm
+
+%.d: %.c
+	$(CC) $(PATHS) -MM $< -MF $@
+-include $(DEPS)
