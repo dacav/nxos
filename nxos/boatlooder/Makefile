@@ -1,4 +1,4 @@
-.PHONY : all clean
+.PHONY : all clean objects cleandeps
 
 TOOLCHAIN_PREFIX := arm-elf-
 CC := $(TOOLCHAIN_PREFIX)gcc
@@ -15,10 +15,12 @@ CFLAGS := -mcpu=arm7tdmi -Os -Wextra -Wall -Werror -Wno-div-by-zero \
           -fomit-frame-pointer -msoft-float -mthumb-interwork -mthumb \
           -Wall -Werror -Os -Wa,-mcpu=arm7tdmi,-mfpu=softfpa,-mthumb-interwork
 
+ROOT := ../
+
 ifdef LINKERSCRIPT
     LDFLAGS := -T$(LINKERSCRIPT)
 else
-    LDFLAGS := -T./boatlooder/boatlooder.ld
+    LDFLAGS := -T$(ROOT)boatlooder/boatlooder.ld
 endif
 LDFLAGS += --no-check-sections
 
@@ -27,26 +29,32 @@ ASFLAGS := -mcpu=arm7tdmi -mthumb-interwork
 ifndef APPKERNEL
   APPKERNEL := tests
 endif
-SYSTEM := ./systems/$(APPKERNEL)
+SYSTEM := systems/$(APPKERNEL)
 
-SOURCES := $(shell find $(SYSTEM) base -regex '.*\.\(c\|S\|s\)')
+SOURCES := $(shell find $(ROOT)$(SYSTEM) $(ROOT)base -regex '.*\.\(c\|S\|s\)')
 OBJECTS := $(addsuffix .o, $(basename $(SOURCES)))
 DEPS := $(OBJECTS:.o=.d)
+ELF_OBJECT := $(ROOT)$(SYSTEM)/$(APPKERNEL)_boatlood
 
 # library path flags
-PATHS := -I. -I$(SYSTEM) -I./system/
+PATHS := -I$(ROOT) -I$(ROOT)$(SYSTEM)
 CFLAGS += $(PATHS)
 
-all: $(OBJECTS)
-	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBGCC) -o $(SYSTEM)/$(APPKERNEL)_boatlood
+all: objects
+	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBGCC) -o $(ELF_OBJECT)
+
+objects:
+	@patch -p1 < ./init.patch
+	$(MAKE) $(OBJECTS)
+	@patch -p1 -R < ./init.patch
 
 clean: cleandeps
 	@echo "Removing object files..."
-	@rm -f $(OBJECTS)
+	@rm -f $(OBJECTS) $(ELF_OBJECT)
 
 cleandeps:
 	@echo "Removing dependency files..."
-	@find . -name '*.d' | xargs rm
+	@find $(ROOT) -name '*.d' | xargs rm
 
 %.d: %.c
 	$(CC) $(PATHS) -MM $< -MF $@

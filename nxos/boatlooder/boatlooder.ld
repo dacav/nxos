@@ -52,7 +52,7 @@ SECTIONS {
     /* Boatlooder information record */
     .boatlooder : {
         . = ALIGN(0);
-        KEEP(base/vectors.o (*.text *.text.*))
+        KEEP(../base/vectors.o (*.text *.text.*))
         . = ALIGN(0);
     } > load_info
  

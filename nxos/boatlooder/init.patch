@@ -1,0 +1,42 @@
+This patch removes code that's no longer userful with the boatlooder tool
+
+diff --git a/../base/init.S b/../base/init.S
+index 206bdc6..9b5a572 100644
+--- a/../base/init.S
++++ b/../base/init.S
+@@ -57,34 +57,8 @@ nx_start:
+          */
+         msr cpsr_c, #(MODE_SVC | IRQ_FIQ_MASK)
+ 
+-        /* RAM needs to be remapped to the bottom of memory. If we are
+-         * booting from ram, this is already done, but if we're running
+-         * in rom, we need to do it now.
+-         */
+-        ldr r0, =MEM_START
+-        ldr r1, =RAM_START
+-        ldr r2, [r0]
+-        ldr r4, [r1]
+-        eor r3, r4, #0xFF
+-        str r3, [r1]
+-        ldr r3, [r0]
+-        str r4, [r1]
+-
+-        /* Compare the values that were read before and after
+-         * flipping. If they are identical, ram is not mapped to the
+-         * bottom of memory, and we need to remap.
+-         */
+-        cmp r2, r3
+-        ldreq r0, =MC_RCR
+-        moveq r1, #1
+-        streq r1, [r0]
+-
+-        /* Break the instruction pipeline to make sure we're getting
+-         * stuff from the right place.
+-         */
+-        b continue_boot
++        /* Memory position cheching is no longer required */
+ 
+-continue_boot:
+         /* Configure the flash controller with the correct values for
+          * writing: FMCN is set to 72 (48 MHz * 1.5 us), the FWS is set
+          * to 1 and the NEBP bit is cleared.
