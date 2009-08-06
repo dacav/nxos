@@ -63,6 +63,8 @@ extern U8 __rom_end__;
 
 extern U8 __boot_from_samba__;
 
+extern U32 __bottom_mapped__;
+
 /* Helper macro that converts a symbol value into a regular
  * integer. If we just addressed eg. __free_ram_start__ directly, the
  * C compiler would dereference and give us some random value (or a
@@ -182,6 +184,14 @@ extern U8 __boot_from_samba__;
 #define NX_BOOT_FROM_SAMBA ((U32)SYMADDR(__boot_from_samba__) != 0 ? TRUE : FALSE)
 #define NX_BOOT_FROM_ROM (!BOOT_FROM_SAMBA)
 /*@}*/
+
+/** @name Bottom mapping
+ *
+ * Only one of these simbols evaluates to TRUE, and defines the current
+ * mapping of the first memory area. This may be associated either to 
+ */
+#define NX_BOTTOM_MAP_FLASH (__bottom_mapped__ == 0 ? TRUE : FALSE)
+#define NX_BOTTOM_MAP_RAM   (!NX_BOTTOM_MAP_FLASH)
 
 /*@}*/
 /*@}*/

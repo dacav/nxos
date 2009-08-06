@@ -48,6 +48,11 @@
         .extern nx__kernel_main
 
 
+/* This variable is not really declared somewhere: the linker script
+ * defines it. see system/appkernels.lds
+ */
+.extern __bottom_mapped__
+
 /**********************************************************
  * Execution starts here after a reset.
  */
@@ -73,10 +78,22 @@ nx_start:
         /* Compare the values that were read before and after
          * flipping. If they are identical, ram is not mapped to the
          * bottom of memory, and we need to remap.
+         * TODO: remove this hack and replace it with __bottom_mapped__
+         *       variable reading.
          */
         cmp r2, r3
-        ldreq r0, =MC_RCR
+
+        /* This modifies the __bottom_mapped__ variable declared by the
+         * linker script. Since we are remapping to ram, we need to set
+         * this value as 1
+         */
+        moveq r1, #2
+        ldreq r0, =__bottom_mapped__
+        streq r1, [r0];
+
         moveq r1, #1
+        /* And this remaps if needed */
+        ldreq r0, =MC_RCR
         streq r1, [r0]
 
         /* Break the instruction pipeline to make sure we're getting

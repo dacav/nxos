@@ -9,17 +9,10 @@
 #include "base/types.h"
 #include "base/util.h"
 #include "base/assert.h"
+#include "base/_memcpy.h"
 
 void memcpy(void *dest, const void *source, U32 len) {
-  U8 *dst = (U8*)dest;
-  U8 *src = (U8*)source;
-
-  NX_ASSERT(dst != NULL);
-  NX_ASSERT(src != NULL);
-
-  while (len--) {
-    *dst++ = *src++;
-  }
+    _memcpy(dest, source, len);
 }
 
 void memset(void *dest, const U8 val, U32 len) {
