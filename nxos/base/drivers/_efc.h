@@ -16,6 +16,7 @@
 #define __NXOS_BASE_DRIVERS__EFC_H__
 
 #include "base/types.h"
+#include "base/lib/bitmap/bitmap.h"
 
 /** @addtogroup driver */
 /*@{*/
@@ -86,6 +87,16 @@ void nx__efc_read_page(U32 page, U32 *data);
  * times).
  */
 bool nx__efc_erase_page(U32 page, U32 value);
+
+/** Checks pages for writing
+ *
+ * Since there are 1024 pages, and 32*32 = 1024, all pages can be checked
+ * with 32 bitmaps. Each bit corresponds to a page, and will be setted to
+ * 0 if the page is locked and 1 if the page can be written.
+ *
+ * @parm bitmaps An array of 32 bitmaps.
+ */
+U32 nx__efc_available_pages(nx_bmp_t *bitmaps);
 
 /*@}*/
 /*@}*/

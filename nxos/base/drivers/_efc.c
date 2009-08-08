@@ -103,5 +103,27 @@ bool nx__efc_erase_page(U32 page, U32 value) {
   return nx__efc_do_write(page);
 }
 
+static U32 check_pages_chunk(U32 chunk, nx_bmp_t *bmp) {
+    U8 i = 0;
+    U32 ret = 0;
+    nx_bmp_set(bmp, 0);     // clear bmp
+    while (i < 32) {
+        if (nx__efc_do_write(chunk * 32 + (i++))) {
+            nx_bmp_set(bmp, i);
+            ret ++;
+        }
+    }
+    return ret;
+}
+
+U32 nx__efc_available_pages(nx_bmp_t *bitmaps) {
+    U8 i;
+    U32 ret = 0;
+    for (i = 0; i < 32; i++) {
+        ret += check_pages_chunk(i, bitmaps + i);
+    }
+    return ret;
+}
+
 /* TODO: implement other flash operations? */
 
