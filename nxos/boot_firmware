@@ -60,7 +60,7 @@ class Firmware(object):
              self.loadaddr, self.samba) = struct.unpack(self.HEADER_DEF, header)
             self.samba = bool(self.samba)
             if magic != 0xDEADBEEF:
-                raise InvalidHeader('Bad magic on header')
+                raise InvalidHeader('Bad magic on header: %s' % hex(magic))
 
 # The following two functions are copied from nxt_python/scripts/nxt_push
 
@@ -141,8 +141,8 @@ def find_all_firmwares(root):
             if f.endswith('.bin') or f.endswith('.rxe'):
                 try:
                     firmware = Firmware(os.path.join(root, f))
-                except Error:
-                    pass
+                except Error, msg:
+                    print 'Firmware error: "%s"' % str(msg)
                 else:
                     firmwares.append(firmware)
     firmwares.sort(key=lambda f: f.path)
