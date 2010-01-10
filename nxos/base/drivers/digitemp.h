@@ -117,11 +117,7 @@ S16 digitemp_get_temperature_raw(U32 sensor);
  * @note Use digitemp_get_temperature_raw for higher resolutions because
  * all the lower bits (the better resolution) is just shifted out.
  */
-inline S16 digitemp_get_temperature(U32 sensor); // needed because of -Werror -Wmissing-prototypes
-
-inline S16 digitemp_get_temperature(U32 sensor) {
-  return digitemp_get_temperature_raw(sensor) >> (16-9);
-}
+S16 digitemp_get_temperature(U32 sensor);
 
 /** Display the digital temperature sensor's information.
  *

@@ -24,6 +24,11 @@ nx_atomic_cas8:
         and r0, r0, #0xFF
         bx lr
 
+        .global nx_spinlock_release
+nx_spinlock_release:
+        mov r1, #0
+        swpb r1, r1, [r0]
+        bx lr
 
         .global nx_spinlock_acquire
 nx_spinlock_acquire:

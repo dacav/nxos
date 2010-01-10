@@ -112,3 +112,8 @@ void digitemp_info(U32 sensor) {
   nx_display_string(" C");
   nx_display_end_line();
 }
+
+S16 digitemp_get_temperature(U32 sensor) {
+  return digitemp_get_temperature_raw(sensor) >> (16-9);
+}
+

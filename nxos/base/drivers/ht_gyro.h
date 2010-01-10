@@ -16,9 +16,6 @@
 #define __NXOS_HT_GYRO_H__
 
 #include "base/types.h"
-#include "base/drivers/sensors.h"
-#include "base/display.h"
-#include "base/drivers/systick.h"
 
 /** @addtogroup driver */
 /*@{*/
@@ -34,19 +31,13 @@
  *
  * @param sensor The sensor port number.
  */
-inline void ht_gyro_init(U32 sensor);
-inline void ht_gyro_init(U32 sensor) {
-  nx_sensors_analog_enable(sensor);
-}
+void ht_gyro_init(U32 sensor);
 
 /** Close the link with the gyro sensor.
  *
  * @param sensor The sensor port number.
  */
-inline void ht_gyro_close(U32 sensor);
-inline void ht_gyro_close(U32 sensor) {
-  nx_sensors_analog_disable(sensor);
-}
+void ht_gyro_close(U32 sensor);
 
 /** Read the rotation in degrees per second of rotation.
  *
@@ -58,10 +49,7 @@ inline void ht_gyro_close(U32 sensor) {
  *   to approximately 300 times per second. The zero-point must be
  *   calculated while the sensor stands still (zero is around 600).
  */
-inline U32 ht_gyro_get_value(U32 sensor);
-inline U32 ht_gyro_get_value(U32 sensor) {
-  return nx_sensors_analog_get(sensor);
-}
+U32 ht_gyro_get_value(U32 sensor);
 
 /** Calculate the zero-point as an average of 8 values.
  *
@@ -73,15 +61,7 @@ inline U32 ht_gyro_get_value(U32 sensor) {
  *   This function needs 32ms to calculate the zero-point.
  *
  */
-inline U32 ht_gyro_calculate_average_zero(U32 sensor);
-inline U32 ht_gyro_calculate_average_zero(U32 sensor) {
-  U32 zero = 0;
-  for(U32 i = 0; i < 8; ++i) {
-    zero += ht_gyro_get_value(sensor);
-    nx_systick_wait_ms(4);
-  }
-  return zero>>3; /* = /8 */
-}
+U32 ht_gyro_calculate_average_zero(U32 sensor);
 
 /** Display the gyro sensor's information.
  *
@@ -89,11 +69,7 @@ inline U32 ht_gyro_calculate_average_zero(U32 sensor) {
  *
  * @param sensor The sensor port number.
  */
-inline void ht_gyro_info(U32 sensor);
-inline void ht_gyro_info(U32 sensor) {
-  nx_display_uint(ht_gyro_get_value(sensor));
-  nx_display_end_line();
-}
+void ht_gyro_info(U32 sensor);
 
 /*@}*/
 /*@}*/
