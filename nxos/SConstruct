@@ -142,6 +142,8 @@ def appkernel_tool(env):
                          env.File('#systems/appkernel_rom.ld'))
         AppKernelVariant(env, kernel_name, 'rxe', app_kernel,
                          env.File('#systems/appkernel_rxe.ld'))
+        AppKernelVariant(env, kernel_name, 'rorom', app_kernel,
+                         env.File('#systems/appkernel_rorom.ld'))
     appkernel_func = new.instancemethod(AppKernel, env, env.__class__)
     env.AppKernel = appkernel_func
 
