@@ -137,7 +137,7 @@ SECTIONS {
     /* Bootup address */
     LONG(ROM_BASE);
     /* SAM-BA kernel? */
-    BYTE(0);
+    BYTE(1);
   } > ram
 
   /* Discard anything not mapped at this point. */
@@ -172,7 +172,7 @@ SECTIONS {
   __stack_start__ = ADDR(.stack);
   __stack_end__ = ADDR(.stack) + SIZEOF(.stack);
 
-  __boot_from_samba__ = 0;
+  __boot_from_samba__ = 1;
 
   __rom_userspace_start__ = ADDR(.text) + SIZEOF(.text);
   __rom_userspace_end__ = ROM_BASE + ROM_SIZE;
