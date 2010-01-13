@@ -60,7 +60,7 @@ void main (void)
     txd = read_tx_data();
     nx_display_string("\n  addr=0x");
     nx_display_hex((unsigned)txd.start_address);
-    nx_display_string("\n  len=0x");
+    nx_display_string("\n  len=");
     nx_display_uint(txd.length);
 
     while (txd.length > 0) {
@@ -69,13 +69,13 @@ void main (void)
         read = read < txd.length ? read : txd.length;
         txd.length -= read;
         nx_display_cursor_set_pos(0, 4);
-        nx_display_string("\nread=0x        ");
+        nx_display_string("\nread=           ");
         nx_display_cursor_set_pos(7, 4);
         nx_display_uint(read);
-        nx_display_string("\ncurs=0x        ");
+        nx_display_string("\ncurs=0x         ");
         nx_display_cursor_set_pos(7, 5);
         nx_display_hex((U32)txd.start_address);
-        nx_display_string("\nleft=0x        ");
+        nx_display_string("\nleft=           ");
         nx_display_cursor_set_pos(7, 6);
         nx_display_uint(txd.length);
         memcpy(txd.start_address, buffer, read);

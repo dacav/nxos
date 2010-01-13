@@ -43,13 +43,14 @@ typedef enum {
 const char *nxt_strerr (nxt_err_t err);
 
 // strerror for libnxt 1.0 (to be used if the error comes from libusb)
-const char *libusb_get_error (nxt_err_t err);
+const char *nxt_libusb_strerr (nxt_link_t *link);
 
 // constructor
 nxt_err_t nxt_init (nxt_link_t *nxt);
 
-// sending primitive
+// sending and receiving primitives
 ssize_t nxt_send (nxt_link_t *nxt, const void *buffer, size_t len);
+ssize_t nxt_receive (nxt_link_t *nxt, void *buffer, size_t len);
 
 // destructor
 void nxt_free (nxt_link_t *nxt);

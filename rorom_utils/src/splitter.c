@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <stdint.h>
 
 static const unsigned FLASH_START = 0x100000;
 static const unsigned FLASH_END   = 0x140000;
@@ -103,7 +104,11 @@ void write_progheads (elf_t *nxos, FILE *ro_out, FILE *rw_out)
     diter_t *phit = elf_proghead_iter_new(nxos);
 
     FILE *target;
-    unsigned vaddr;
+    uint32_t vaddr;
+
+    // The flash virtual address addendum is obtained at runtime basing on
+    // the position of the read-only segment's first byte.
+    int32_t flash_virtual = -1;
 
     while (diter_hasnext(phit)) {
         Elf32_Phdr *hdr = diter_next(phit);
@@ -118,18 +123,22 @@ void write_progheads (elf_t *nxos, FILE *ro_out, FILE *rw_out)
                "    Belongs to ", (void *)vaddr);
         if (vaddr >= FLASH_START && vaddr < FLASH_END) {
             target = ro_out;
-            vaddr -= FLASH_START;
-            printf("FLASH\n");
+            if (flash_virtual == -1) {
+                flash_virtual = vaddr;
+            }
+            vaddr -= flash_virtual;
+            printf("FLASH (subtact %p, obtaining ", (void *)FLASH_START);
         } else if (vaddr >= RAM_START && vaddr < RAM_END) {
             target = rw_out;
             vaddr -= RAM_START;
-            printf("RAM\n");
+            printf("RAM (subtact %p, obtaining ", (void *)RAM_START);
         } else {
             printf("...Nothing, i was joking\n");
             fprintf(stderr, "Unbound segment, virtual addr: %p\n",
                     (void *)vaddr);
             continue;
         }
+        printf("%p)\n", (void *)vaddr);
 
         // Position file descriptor;
         fseek(target, vaddr, SEEK_SET);

@@ -28,6 +28,10 @@
 
 #include "nxt.h"
 
+#ifndef DELAY_uSECS
+#define DELAY_uSECS 50000
+#endif
+
 static
 int get_ro_size (const char *path)
 {
@@ -52,7 +56,8 @@ int main (int argc, char **argv)
     }
 
     const char *filename = argv[1];
-    tx_data_t data = { .start_address = 0x100000 };
+    // FIXME this should be parametrized!
+    tx_data_t data = { .start_address = 0x100000 + 0x8000 };
 
     if ((data.length = get_ro_size(filename)) == -1) {
         fprintf(stderr, "Invalid ROM image\n");
@@ -64,6 +69,7 @@ int main (int argc, char **argv)
     size_t read, sent;
 
     if (nxt_init(&nxt)) {
+        fprintf(stderr, "Initialization failed\n");
         exit(1);
     }
 
@@ -83,12 +89,14 @@ int main (int argc, char **argv)
     while ((read = fread((void *)buffer, USB_BUFSIZE, 1, ro_data)) > 0) {
         read *= USB_BUFSIZE;
         sent = nxt_send(&nxt, (void *)buffer, read);
-        fprintf(stdout, "Remaining: %d\r", data.length);
+        fprintf(stdout, "Remaining: %-20d\r", data.length);
         if (sent == -1) {
+            fprintf(stderr, "Send failed: %s\n", nxt_libusb_strerr(&nxt));
             break;
         }
         data.length -= sent;
         data.start_address += sent;
+        usleep(DELAY_uSECS);
     }
     fprintf(stdout, "\n");
 

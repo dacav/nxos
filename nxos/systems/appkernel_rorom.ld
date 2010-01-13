@@ -6,10 +6,7 @@
  * the terms of the GNU Public License (GPL) version 2.
  */
 
-/* NXT linker script source to:
- *  -   boot from RAM;
- *  -   put read-only data/code to ROM;
- *  -   avoid SAM-BA flash locking.
+/* NXT linker script source to boot from ram (using samba).
  *
  *  Notes on alignment:
  *  1) Sections should be 4-byte aligned otherwise ARM fetches will be
@@ -23,13 +20,18 @@
  */
 
 MEMORY {
-rom : ORIGIN = 1M, LENGTH =256k
-vector_ram : ORIGIN = 2M, LENGTH = 64
-ram : ORIGIN = 2M + 64, LENGTH = 64K - 64 + 21
+    /* This origin for the ROM skips the SAM-BA firmware, which uses (and
+     * locks) the first 128 pages of FLASH memory (= 0x8000).
+     */
+    rom : ORIGIN = 1M + 0x8000,  LENGTH = 256k - 0x8000
+    vector_ram : ORIGIN = 2M, LENGTH = 64
+    ram : ORIGIN = 2M + 64, LENGTH = 64K - 64 + 21
 }
 
-ROM_BASE = 1M;
-ROM_SIZE = 256k;
+/* Skip 0x8000 for the same reason as before */
+ROM_BASE = 1M + 0x8000;
+ROM_SIZE = 256k - 0x8000;
+
 RAM_BASE = 2M;
 RAM_SIZE = 64k;
 SAMBA_RESERVED_SIZE = 8k;
@@ -74,13 +76,13 @@ SECTIONS {
      */
     . = ALIGN(4);
     __bottom_mapped__ = .;
-    LONG(0)
+    LONG(1)
   } > ram
 
 
   /*
    * The main kernel executable code, as well as all the read-only
-   * data. 
+   * data. If possible, this goes into flash, to free up more RAM.
    */
   .text : ALIGN(4) {
     * (*.text *.text.* *.glue*)
@@ -119,23 +121,29 @@ SECTIONS {
   } > ram
 
 
+  /* SAMBA stage 0.5 */
+  .samba_boot ADDR(.bss) : {
+    KEEP(base/samba_init.o (.samba_init));
+  }
+
+
   /*
-   * The magic metadata struct is tacked onto the start of the kernel binary.
+   * The magic metadata struct is tacked onto the start of the kernel
+   * binary.
    */
-   .magic : {
+  .magic ADDR(.samba_boot) + SIZEOF(.samba_boot) : {
     /* Magic identifier */
     LONG(0xDEADBEEF);
     /* Kernel in-ram size */
     LONG(SIZEOF(.vectors) + SIZEOF(.ram_text) +
          SIZEOF(.data) + SIZEOF(.bss) + SIZEOF(.stack)
-    );
+         + SIZEOF(.text));
     /* Kernel in-rom size */
-    LONG(SIZEOF(.vectors) + SIZEOF(.ram_text) +
-         SIZEOF(.data) + SIZEOF(.text));
+    LONG(0);
     /* Write address */
-    LONG(ROM_BASE);
+    LONG(RAM_BASE + SAMBA_RESERVED_SIZE);
     /* Bootup address */
-    LONG(ROM_BASE);
+    LONG(ADDR(.samba_boot) + SAMBA_RESERVED_SIZE);
     /* SAM-BA kernel? */
     BYTE(1);
   } > ram
@@ -174,10 +182,11 @@ SECTIONS {
 
   __boot_from_samba__ = 1;
 
-  __rom_userspace_start__ = ADDR(.text) + SIZEOF(.text);
+  __rom_userspace_start__ = 0;
   __rom_userspace_end__ = ROM_BASE + ROM_SIZE;
 
   __ram_userspace_start__ = __stack_end__;
   __ram_userspace_end__ = RAM_BASE + RAM_SIZE;
 
+   __kernel_ram_load_size__ = __text_end__ - __vectors_ram_start__;
 }

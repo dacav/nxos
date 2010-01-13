@@ -134,9 +134,9 @@ ssize_t nxt_send (nxt_link_t *nxt, const void *buffer, size_t len)
     int err = transfer(nxt, TX_ENDPOINT, &transf, (void *)buffer, len);
 
     if (err != LIBUSB_SUCCESS) {
-        nxt->usb_error = err;
         transf = -1;
     }
+    nxt->usb_error = err;
     return transf;
 }
 
@@ -146,9 +146,9 @@ ssize_t nxt_receive (nxt_link_t *nxt, void *buffer, size_t len)
     int err = transfer(nxt, RX_ENDPOINT, &transf, buffer, len);
 
     if (err != LIBUSB_SUCCESS) {
-        nxt->usb_error = err;
         transf = -1;
     }
+    nxt->usb_error = err;
     return transf;
 }
 
