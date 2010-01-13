@@ -24,5 +24,5 @@ bin_PROGRAMS = splitter loadflash
 splitter_SOURCES = splitter.c
 splitter_LDADD = -ldacav -lelfsword
 
-loadflash_SOURCES = loadflash.c
+loadflash_SOURCES = loadflash.c nxt.c nxt.h
 loadflash_LDADD = -lusb-1.0
