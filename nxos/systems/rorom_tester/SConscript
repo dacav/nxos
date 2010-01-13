@@ -1,0 +1,3 @@
+from glob import glob
+Import('env')
+env.AppKernel('rorom_tester', glob('*.[cS]'), kernelsize='30k')
