@@ -50,30 +50,34 @@ typedef struct {
 
 int main (int argc, char **argv)
 {
+    const char *filename;
+    tx_data_t data;
+    nxt_link_t nxt;
+    uint8_t buffer[USB_BUFSIZE];
+    size_t read, sent;
+    FILE *ro_data;
+
     if (argc < 2) {
         fprintf(stderr, "Provide the ROM image as first parameter.\n");
         exit(1);
     }
+    filename = argv[1];
 
-    const char *filename = argv[1];
-    // FIXME this should be parametrized!
-    tx_data_t data = { .start_address = 0x100000 + 0x8000 };
+    // FIXME this should be parametrized. Basically it's the address of
+    // the first unlocked flash memory location.
+    data.start_address = 0x108000;
 
     if ((data.length = get_ro_size(filename)) == -1) {
         fprintf(stderr, "Invalid ROM image\n");
         exit(1);
     }
     
-    nxt_link_t nxt;
-    uint8_t buffer[USB_BUFSIZE];
-    size_t read, sent;
-
     if (nxt_init(&nxt)) {
         fprintf(stderr, "Initialization failed\n");
         exit(1);
     }
 
-    FILE *ro_data = fopen(filename, "rb");
+    ro_data = fopen(filename, "rb");
     if (ro_data == NULL) {
         fprintf(stderr, "Error in opening %s\n", filename);
         nxt_free(&nxt);
@@ -86,19 +90,22 @@ int main (int argc, char **argv)
             (void *)data.start_address,
             data.length);
 
-    while ((read = fread((void *)buffer, USB_BUFSIZE, 1, ro_data)) > 0) {
-        read *= USB_BUFSIZE;
+    while ((read = fread((void *)buffer, 1, USB_BUFSIZE, ro_data)) > 0) {
         sent = nxt_send(&nxt, (void *)buffer, read);
-        fprintf(stdout, "Remaining: %-20d\r", data.length);
-        if (sent == -1) {
-            fprintf(stderr, "Send failed: %s\n", nxt_libusb_strerr(&nxt));
-            break;
-        }
+        fprintf(stdout, "Sent: %-8d | ", sent);
         data.length -= sent;
+        fprintf(stdout, "Remaining: %-8d | ", data.length);
         data.start_address += sent;
+        fprintf(stdout, "Position: %p | ", (void *)data.start_address);
+        if (sent == -1) {
+            fprintf(stderr, "Send failed: %s\r", nxt_libusb_strerr(&nxt));
+            break;
+        } else {
+            fprintf(stdout, "Send achieved.\r");
+        }
         usleep(DELAY_uSECS);
     }
-    fprintf(stdout, "\n");
+    fprintf(stdout, "\nCompleted\n");
 
     if (ferror(ro_data)) {
         fprintf(stderr, "File error in %s\n", filename);

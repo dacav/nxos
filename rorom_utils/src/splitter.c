@@ -127,7 +127,7 @@ void write_progheads (elf_t *nxos, FILE *ro_out, FILE *rw_out)
                 flash_virtual = vaddr;
             }
             vaddr -= flash_virtual;
-            printf("FLASH (subtact %p, obtaining ", (void *)FLASH_START);
+            printf("FLASH (subtact %p, obtaining ", (void *)flash_virtual);
         } else if (vaddr >= RAM_START && vaddr < RAM_END) {
             target = rw_out;
             vaddr -= RAM_START;
