@@ -68,12 +68,12 @@ nx_start:
          */
         ldr r0, =MEM_START
         ldr r1, =RAM_START
-        ldr r2, [r0]
-        ldr r4, [r1]
-        eor r3, r4, #0xFF
-        str r3, [r1]
-        ldr r3, [r0]
-        str r4, [r1]
+        ldr r2, [r0]        /* Take the first initial word */
+        ldr r4, [r1]        /* Take the first ram word */
+        eor r3, r4, #0xFF   /* Modify the first initial word */
+        str r3, [r1]        /* Store the modified version in ram */
+        ldr r3, [r0]        /* Take again the first initial word */
+        str r4, [r1]        /* Restore the original first ram word */
 
         /* Compare the values that were read before and after
          * flipping. If they are identical, ram is not mapped to the
@@ -85,11 +85,12 @@ nx_start:
 
         /* This modifies the __bottom_mapped__ variable declared by the
          * linker script. Since we are remapping to ram, we need to set
-         * this value as 1
+         * this value as 1, otherwise we set it to 0.
          */
-        moveq r1, #2
-        ldreq r0, =__bottom_mapped__
-        streq r1, [r0];
+        moveq r1, #1
+        movne r1, #0
+        ldr r0, =__bottom_mapped__
+        str r1, [r0];
 
         moveq r1, #1
         /* And this remaps if needed */
