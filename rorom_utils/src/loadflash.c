@@ -32,6 +32,10 @@
 #define DELAY_uSECS 50000
 #endif
 
+#ifndef COLS_NUMBER
+#define COLS_NUMBER 48
+#endif
+
 static
 int get_ro_size (const char *path)
 {
@@ -48,6 +52,22 @@ typedef struct {
     int32_t length;
 } tx_data_t;
 
+static
+void display_percentage (ssize_t total, tx_data_t *tx)
+{
+    float percentage;
+    unsigned col;
+
+    percentage = (float)(total - tx->length) / total;
+    fprintf(stdout, "Position: %8p %6.2f%% |",
+            (void *)tx->start_address, 100 * percentage);
+    for (col = 0; col < COLS_NUMBER * percentage; col ++) {
+        fprintf(stdout, "=");
+    }
+    fprintf(stdout, "|\r");
+    fflush(stdout);
+}
+
 int main (int argc, char **argv)
 {
     const char *filename;
@@ -55,6 +75,7 @@ int main (int argc, char **argv)
     nxt_link_t nxt;
     uint8_t buffer[USB_BUFSIZE];
     size_t read, sent;
+    ssize_t total;
     FILE *ro_data;
 
     if (argc < 2) {
@@ -67,7 +88,8 @@ int main (int argc, char **argv)
     // the first unlocked flash memory location.
     data.start_address = 0x108000;
 
-    if ((data.length = get_ro_size(filename)) == -1) {
+    total = data.length = get_ro_size(filename);
+    if (total == -1) {
         fprintf(stderr, "Invalid ROM image\n");
         exit(1);
     }
@@ -92,16 +114,12 @@ int main (int argc, char **argv)
 
     while ((read = fread((void *)buffer, 1, USB_BUFSIZE, ro_data)) > 0) {
         sent = nxt_send(&nxt, (void *)buffer, read);
-        fprintf(stdout, "Sent: %-8d | ", sent);
         data.length -= sent;
-        fprintf(stdout, "Remaining: %-8d | ", data.length);
         data.start_address += sent;
-        fprintf(stdout, "Position: %p | ", (void *)data.start_address);
+        display_percentage(total, &data);
         if (sent == -1) {
             fprintf(stderr, "Send failed: %s\r", nxt_libusb_strerr(&nxt));
             break;
-        } else {
-            fprintf(stdout, "Send achieved.\r");
         }
         usleep(DELAY_uSECS);
     }
@@ -115,4 +133,3 @@ int main (int argc, char **argv)
     nxt_free(&nxt);
     exit(0);
 }
-
