@@ -17,14 +17,15 @@
 #include "base/assert.h"
 #include "base/drivers/systick.h"
 #include "base/drivers/_efc.h"
+#include "base/gcc_defines.h"
 
 #define EFC_WRITE ((EFC_WRITE_KEY << 24) + EFC_CMD_WP)
 #define EFC_THROTTLE_TIMER 2
 
-void nx__efc_init(void) {
+void RAMCODE nx__efc_init(void)  {
 }
 
-static bool nx__efc_do_write(U32 page) {
+static bool RAMCODE nx__efc_do_write(U32 page)  {
   U32 ret;
 
   NX_ASSERT(page < EFC_PAGES);
@@ -46,14 +47,14 @@ static bool nx__efc_do_write(U32 page) {
   return TRUE;
 }
 
-static inline void nx__efc_wait_for_flash(void) {
+static inline RAMCODE void nx__efc_wait_for_flash(void)  {
   while (!(*AT91C_MC_FSR & AT91C_MC_FRDY));
 }
 
 /* Write one page at the given page number in the flash.
  * Use interrupt-driven flash programming ?
  */
-bool nx__efc_write_page(U32 *data, U32 page) {
+bool RAMCODE nx__efc_write_page(U32 *data, U32 page)  {
   U8 i;
 
   NX_ASSERT(page < EFC_PAGES);
@@ -74,7 +75,7 @@ bool nx__efc_write_page(U32 *data, U32 page) {
  * data or just a pointer, relative to the data retrieval
  * mechanism from the flash.
  */
-void nx__efc_read_page(U32 page, U32 *data) {
+void RAMCODE nx__efc_read_page(U32 page, U32 *data)  {
   U8 i;
 
   NX_ASSERT(page < EFC_PAGES);
@@ -86,7 +87,7 @@ void nx__efc_read_page(U32 page, U32 *data) {
   }
 }
 
-bool nx__efc_erase_page(U32 page, U32 value) {
+bool RAMCODE nx__efc_erase_page(U32 page, U32 value)  {
   U8 i;
 
   NX_ASSERT(page < EFC_PAGES);

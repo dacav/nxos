@@ -54,12 +54,8 @@ SECTIONS {
    * function correctly (like flash writing code)
    */
   .ram_text : ALIGN(4) {
-    *.oram (*.text *.text.* *.glue*)
-    *.oram (*.rodata *.rodata.*)
-    . = ALIGN(4);
-    * (*.ram_text)
+    * (*.oram)
   } > ram
-
 
   /*
    * Read/Write initialized data. Runs from RAM, gets copied there
